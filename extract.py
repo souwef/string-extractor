@@ -5,8 +5,6 @@ import datetime
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import ttk
-from discord_webhook import DiscordWebhook, DiscordEmbed
-
 
 def extract_strings():
     file_name = os.path.splitext(os.path.basename(pe_file))[0]
