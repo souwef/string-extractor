@@ -1,80 +1,84 @@
-import pefile
 import os
-import hashlib
 import datetime
+import pefile
 import tkinter as tk
-from tkinter import filedialog
-from tkinter import ttk
+from tkinter import filedialog, ttk
 
-def extract_strings():
+
+def extract_strings(pe_file: str) -> str:
     file_name = os.path.splitext(os.path.basename(pe_file))[0]
-    txt_name = file_name + "-strings.txt"
+    txt_name = f"{file_name}-strings.txt"
+
     with open(txt_name, "w") as file:
-        file_name2 = os.path.basename(pe_file)
-        file.write("File Name: " + file_name2 + "\n")
-        file_size = os.path.getsize(pe_file)
-        file.write("File Size: " + str(file_size) + " bytes\n")
+        # file name & size
+        file.write(f"File Name: {os.path.basename(pe_file)}\n")
+        file.write(f"File Size: {os.path.getsize(pe_file)} bytes\n")
+
         pe = pefile.PE(pe_file)
 
-        # md5 string
-
-        md5_hash = hashlib.md5(pe.__data__).hexdigest()
-        file.write("MD5: " + md5_hash + "\n")
-
         # pcasvc string
-
-        pcasvc_string = (hex(pe.OPTIONAL_HEADER.SizeOfImage))
-        file.write("PcaSvc: " + pcasvc_string + "\n")
+        pcasvc_string = hex(pe.OPTIONAL_HEADER.SizeOfImage)
+        file.write(f"PcaSvc: {pcasvc_string}\n")
 
         # dps string
-
         timestamp = pe.FILE_HEADER.TimeDateStamp
-        timestamp_dt = datetime.datetime.utcfromtimestamp(timestamp)
+        timestamp_dt = datetime.datetime.fromtimestamp(timestamp, datetime.UTC)
         timestamp_str = timestamp_dt.strftime("%Y/%m/%d:%H:%M:%S")
-        DPS_string = "!" + timestamp_str
-        file.write("DPS: " + DPS_string + "\n")
+        file.write(f"DPS: !{timestamp_str}\n")
 
-def browse_file():
-    global pe_file
-    pe_file = filedialog.askopenfilename(filetypes=[("Executable Files", "*.exe")])
-    if pe_file:
-        file_label.config(text=f"Selected File: {os.path.basename(pe_file)}")
+    return txt_name
 
 
-def extract_button():
-    if not pe_file:
-        return
-    extract_strings()
-    result_label.config(text="Strings extracted successfully!", foreground="green")
+class StringExtractorApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("String Extractor")
 
-# window setup
-root = tk.Tk()
-width = 400
-height = 200
-x_offset = (root.winfo_screenwidth() - width) // 2
-y_offset = (root.winfo_screenheight() - height) // 2
-root.geometry(f"{width}x{height}+{x_offset}+{y_offset}")
+        width, height = 400, 200
+        x_offset = (root.winfo_screenwidth() - width) // 2
+        y_offset = (root.winfo_screenheight() - height) // 2
+        root.geometry(f"{width}x{height}+{x_offset}+{y_offset}")
+        root.minsize(width, height)
+        root.maxsize(width, height)
 
-# lock the window size
-root.minsize(width, height)
-root.maxsize(width, height)
+        self.pe_file = None
+        self.create_widgets()
 
-root.title("String Extractor")
+    def create_widgets(self):
+        file_frame = ttk.Frame(self.root)
+        file_frame.pack(pady=10)
 
-# create elements
+        self.file_label = ttk.Label(file_frame, text="No file selected")
+        self.file_label.pack(side="left", padx=10)
 
-file_frame = ttk.Frame(root)
-file_frame.pack(pady=10)
-file_label = ttk.Label(file_frame, text="No file selected")
-file_label.pack(side="left", padx=10)
-browse_button = ttk.Button(file_frame, text="Browse", command=browse_file)
-browse_button.pack(side="left")
+        browse_button = ttk.Button(file_frame, text="Browse", command=self.browse_file)
+        browse_button.pack(side="left")
 
-extract_button = ttk.Button(root, text="Extract Strings", command=extract_button)
-extract_button.pack(pady=10)
+        extract_btn = ttk.Button(self.root, text="Extract Strings", command=self.run_extraction)
+        extract_btn.pack(pady=10)
 
-result_label = ttk.Label(root, text="")
-result_label.pack()
+        self.result_label = ttk.Label(self.root, text="")
+        self.result_label.pack()
 
-# main loop
-root.mainloop()
+    def browse_file(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Executable Files", "*.exe")])
+        if file_path:
+            self.pe_file = file_path
+            self.file_label.config(text=f"Selected File: {os.path.basename(file_path)}")
+
+    def run_extraction(self):
+        if not self.pe_file:
+            self.result_label.config(text="No file selected!", foreground="red")
+            return
+
+        try:
+            output_file = extract_strings(self.pe_file)
+            self.result_label.config(text=f"Strings saved to {output_file}", foreground="green")
+        except Exception as e:
+            self.result_label.config(text=f"Error: {e}", foreground="red")
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = StringExtractorApp(root)
+    root.mainloop()
