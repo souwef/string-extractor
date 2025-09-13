@@ -3,16 +3,25 @@ import datetime
 import pefile
 import tkinter as tk
 from tkinter import filedialog, ttk
+import hashlib
 
 
 def extract_strings(pe_file: str) -> str:
     file_name = os.path.splitext(os.path.basename(pe_file))[0]
     txt_name = f"{file_name}-strings.txt"
 
+    # Compute SHA1 hash
+    sha1_hash = hashlib.sha1()
+    with open(pe_file, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            sha1_hash.update(chunk)
+    sha1_value = sha1_hash.hexdigest()
+
     with open(txt_name, "w") as file:
         # file name & size
         file.write(f"File Name: {os.path.basename(pe_file)}\n")
         file.write(f"File Size: {os.path.getsize(pe_file)} bytes\n")
+        file.write(f"SHA1: {sha1_value}\n")
 
         pe = pefile.PE(pe_file)
 
@@ -26,7 +35,7 @@ def extract_strings(pe_file: str) -> str:
         timestamp_str = timestamp_dt.strftime("%Y/%m/%d:%H:%M:%S")
         file.write(f"DPS: !{timestamp_str}\n")
 
-    return txt_name
+    return txt_name, sha1_value
 
 
 class StringExtractorApp:
@@ -72,7 +81,7 @@ class StringExtractorApp:
             return
 
         try:
-            output_file = extract_strings(self.pe_file)
+            output_file, sha1_value = extract_strings(self.pe_file)
             self.result_label.config(text=f"Strings saved to {output_file}", foreground="green")
         except Exception as e:
             self.result_label.config(text=f"Error: {e}", foreground="red")
