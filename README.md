@@ -40,7 +40,3 @@ The GUI window should open.
 
 - Click **Browse** → select a `.exe` file.
 - Click **Extract Strings** → output text file will be created in the same folder.
-
----
-
-Done!
