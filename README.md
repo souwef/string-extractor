@@ -1,42 +1,88 @@
-# 📖 Setup Guide
+# String Extractor Tool
 
-## 1. Install Python
-1. Go to the official Python website:
-   https://www.python.org/downloads/
-2. Download the **latest stable release** (Python 3.12+ is recommended).
-3. Run the installer:
-   - Check **“Add Python to PATH”** during installation.
-   - Choose **Install Now**.
+## Features
 
----
+- **PE File Analysis**: Extract metadata from executable files
+- **User-Friendly GUI**: Simple interface for file selection and processing
+- **Output Generation**: Creates text files with extracted information
 
-## 2. Verify Python is Installed
-Open a terminal (Command Prompt or PowerShell on Windows) and type:
+## Requirements
 
-    python --version
+### For Running from Source
+- Python 3.8 or higher
+- Required Python packages:
+  - `pefile`
+  - `tkinter` (usually included with Python)
 
-You should see something like:
+### For Standalone Executable
+- No requirements - the executable is self-contained
 
-    Python 3.12.4
+## Installation & Usage
 
----
+### Option 1: Running from Source
 
-## 3. Install Required Library
-This script only needs **pefile**.  
-Install it by running:
+1. **Install Python**:
+   - Go to https://www.python.org/downloads/
+   - Download Python 3.8+ and install with "Add Python to PATH" checked
 
-    pip install pefile
+2. **Verify Installation**:
+   ```powershell
+   python --version
+   ```
 
----
+3. **Install Required Library**:
+   ```powershell
+   pip install pefile
+   ```
 
-## 4. Run the Script
-1. Save your Python script as `extract.py`.
-2. Open a terminal in the same folder as `extract.py`.
-3. Run:
+4. **Run the Application**:
+   ```powershell
+   python extract.py
+   ```
 
-    python extract.py
+### Option 2: Use Standalone Executable
 
-The GUI window should open.
+1. **Download or build** `extract.exe` from the `dist` folder
+2. **Double-click** `extract.exe` to run
+3. **No installation required** - completely portable
 
-- Click **Browse** → select a `.exe` file.
-- Click **Extract Strings** → output text file will be created in the same folder.
+## How to Use the Tool
+
+1. **Launch the application** (either `python extract.py` or `extract.exe`)
+2. **Click "Browse"** to select a `.exe` file
+3. **Click "Extract Strings"** to process the file
+4. **Output file** will be created in the same directory with format: `filename-strings.txt`
+
+### Output File Contents
+
+The generated text file includes:
+- **File Name**: Original filename
+- **File Size**: Size in bytes  
+- **SHA1**: SHA1 Hash of the file
+- **PcaSvc String**: Size of image in hex format
+- **DPS String**: Timestamp in `YYYY/MM/DD:HH:MM:SS` format
+
+## Building to Standalone Executable
+
+### Prerequisites
+
+1. **Install PyInstaller**:
+   ```powershell
+   pip install pyinstaller
+   ```
+
+### Build Commands
+
+1. **Navigate to project directory**:
+   ```powershell
+   cd "path\to\string extractor"
+   ```
+
+2. **Build executable**:
+   ```powershell
+   pyinstaller --onefile --windowed extract.py
+   ```
+
+3. **Find your executable**:
+   - Built executable: `dist\extract.exe`
+   - Completely standalone - no dependencies needed
